@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Southwestern College — Student Success Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple: #8031A7;
+    --purple-dark: #5a1f7a;
+    --purple-light: #a04ec8;
+    --black: #0a0a0a;
+    --card: #1c1c1c;
+    --border: rgba(128,49,167,0.4);
+    --white: #ffffff;
+    --muted: #888888;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; font-family:'DM Sans',sans-serif; background:var(--black); color:var(--white); overflow:hidden; }
+
+  .bg-canvas {
+    position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(128,49,167,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 90%, rgba(128,49,167,0.12) 0%, transparent 60%),
+      var(--black);
+  }
+  .bg-canvas::after {
+    content:''; position:absolute; inset:0;
+    background-image: linear-gradient(rgba(128,49,167,0.06) 1px,transparent 1px), linear-gradient(90deg,rgba(128,49,167,0.06) 1px,transparent 1px);
+    background-size:60px 60px;
+  }
+
+  .top-bar { position:fixed; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,var(--purple-dark),var(--purple),var(--purple-light)); z-index:100; }
+
+  .kiosk-wrapper {
+    position:relative; z-index:10; width:100%; height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px;
+  }
+
+  .header { text-align:center; margin-bottom:32px; animation:fadeDown 0.7s ease both; }
+  .college-label { font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:5px; color:var(--purple-light); text-transform:uppercase; margin-bottom:8px; display:block; }
+  .header h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(34px,5vw,56px); letter-spacing:3px; color:var(--white); line-height:1; margin-bottom:10px; }
+  .header h1 span { color:var(--purple-light); }
+  .divider { width:60px; height:3px; background:linear-gradient(90deg,var(--purple-dark),var(--purple-light)); border-radius:2px; margin:12px auto; }
+  .header-sub { font-size:14px; color:var(--muted); letter-spacing:1px; font-weight:300; }
+
+  .card {
+    background:var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:40px 44px; width:100%; max-width:620px;
+    box-shadow:0 0 60px rgba(128,49,167,0.15),0 20px 60px rgba(0,0,0,0.5);
+    animation:fadeUp 0.7s ease 0.15s both;
+  }
+
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-group { margin-bottom:20px; }
+
+  label { display:block; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--purple-light); margin-bottom:7px; }
+
+  input, select {
+    width:100%; padding:15px 18px;
+    background:rgba(255,255,255,0.05); border:1px solid rgba(128,49,167,0.35);
+    border-radius:10px; color:var(--white); font-family:'DM Sans',sans-serif;
+    font-size:16px; transition:border-color 0.2s,background 0.2s,box-shadow 0.2s; outline:none;
+    -webkit-appearance:none; appearance:none;
+  }
+  input::placeholder { color:#444; }
+  input:focus, select:focus {
+    border-color:var(--purple-light); background:rgba(128,49,167,0.1);
+    box-shadow:0 0 0 3px rgba(128,49,167,0.2);
+  }
+  .select-wrap { position:relative; }
+  .select-wrap::after { content:'▾'; position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--purple-light); font-size:18px; pointer-events:none; }
+  select option { background:#1e1e1e; color:var(--white); }
+
+  input.error, select.error { border-color:#e05; box-shadow:0 0 0 3px rgba(220,0,80,0.15); }
+  .error-msg { font-size:11px; color:#e05; margin-top:4px; display:none; }
+
+  .btn-submit {
+    width:100%; padding:17px; margin-top:8px;
+    background:linear-gradient(135deg,var(--purple-dark),var(--purple),var(--purple-light));
+    border:none; border-radius:10px; color:var(--white);
+    font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:3px;
+    cursor:pointer; transition:transform 0.15s,box-shadow 0.2s,filter 0.2s;
+    box-shadow:0 4px 30px rgba(128,49,167,0.4);
+  }
+  .btn-submit:hover { transform:translateY(-2px); box-shadow:0 8px 40px rgba(128,49,167,0.6); filter:brightness(1.1); }
+  .btn-submit:active { transform:translateY(0); }
+
+  .timestamp-footer { margin-top:24px; text-align:center; font-size:12px; color:#333; letter-spacing:1px; animation:fadeUp 0.7s ease 0.3s both; }
+
+  /* Success */
+  .success-screen {
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; height:100vh; width:100%; position:fixed; inset:0; z-index:200;
+    background:var(--black); animation:fadeIn 0.5s ease both;
+  }
+  .success-icon {
+    width:90px; height:90px; border-radius:50%;
+    background:linear-gradient(135deg,var(--purple-dark),var(--purple-light));
+    display:flex; align-items:center; justify-content:center; font-size:40px;
+    margin-bottom:28px; box-shadow:0 0 50px rgba(128,49,167,0.5);
+    animation:popIn 0.5s ease 0.2s both;
+  }
+  .success-screen h2 { font-family:'Bebas Neue',sans-serif; font-size:52px; letter-spacing:3px; margin-bottom:12px; }
+  .success-name { font-size:24px; color:var(--purple-light); font-weight:600; margin-bottom:4px; }
+  .success-reason { font-size:16px; color:var(--muted); margin-bottom:32px; }
+  .countdown { font-size:13px; color:#444; letter-spacing:1px; margin-top:20px; }
+
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp   { from{opacity:0;transform:translateY(20px)}  to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+  @keyframes popIn    { from{opacity:0;transform:scale(0.5)} to{opacity:1;transform:scale(1)} }
+</style>
+</head>
+<body>
+
+<div class="bg-canvas"></div>
+<div class="top-bar"></div>
+
+<div class="kiosk-wrapper" id="formView">
+  <div class="header">
+    <span class="college-label">Southwestern College</span>
+    <h1>Student <span>Success</span> Center</h1>
+    <div class="divider"></div>
+    <p class="header-sub">Please sign in below to get started</p>
+  </div>
+
+  <div class="card">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input type="text" id="firstName" placeholder="Jane" autocomplete="off" />
+        <div class="error-msg" id="firstNameErr">Required</div>
+      </div>
+      <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input type="text" id="lastName" placeholder="Doe" autocomplete="off" />
+        <div class="error-msg" id="lastNameErr">Required</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="studentId">Student ID</label>
+      <input type="text" id="studentId" placeholder="e.g. 100234" autocomplete="off" inputmode="numeric" />
+      <div class="error-msg" id="studentIdErr">Required</div>
+    </div>
+
+    <div class="form-group">
+      <label for="reason">Reason for Visit</label>
+      <div class="select-wrap">
+        <select id="reason">
+          <option value="" disabled selected>Select a reason…</option>
+          <option value="Tutoring">Tutoring</option>
+          <option value="Academic Advising">Academic Advising</option>
+          <option value="Financial Aid">Financial Aid</option>
+          <option value="Counseling">Counseling</option>
+          <option value="Career Services">Career Services</option>
+          <option value="Disability Services">Disability Services</option>
+          <option value="General Question">General Question</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="error-msg" id="reasonErr">Please select a reason</div>
+    </div>
+
+    <button class="btn-submit" onclick="handleSubmit()">Check In →</button>
+  </div>
+
+  <div class="timestamp-footer" id="clock"></div>
+</div>
+
+<!-- Success screen -->
+<div class="success-screen" id="successView">
+  <div class="success-icon">✓</div>
+  <h2>You're Checked In!</h2>
+  <p class="success-name" id="successName"></p>
+  <p class="success-reason" id="successReason"></p>
+  <p style="color:#555;font-size:15px;">A staff member will be with you shortly.</p>
+  <p class="countdown" id="countdownMsg"></p>
+</div>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) +
+      '  ·  ' +
+      now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  function validate() {
+    let valid = true;
+    [['firstName','firstNameErr'],['lastName','lastNameErr'],['studentId','studentIdErr'],['reason','reasonErr']].forEach(([id,errId]) => {
+      const el = document.getElementById(id);
+      const err = document.getElementById(errId);
+      if (!el.value.trim()) { el.classList.add('error'); err.style.display='block'; valid=false; }
+      else { el.classList.remove('error'); err.style.display='none'; }
+    });
+    return valid;
+  }
+
+  async function handleSubmit() {
+    if (!validate()) return;
+    const first     = document.getElementById('firstName').value.trim();
+    const last      = document.getElementById('lastName').value.trim();
+    const studentId = document.getElementById('studentId').value.trim();
+    const reason    = document.getElementById('reason').value;
+    const checkInTime = new Date().toLocaleString('en-US', {
+      weekday:'long', year:'numeric', month:'long', day:'numeric',
+      hour:'2-digit', minute:'2-digit', second:'2-digit'
+    });
+
+    // Submit to Formspree
+    try {
+      await fetch('https://formspree.io/f/mojkdzge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          'First Name':    first,
+          'Last Name':     last,
+          'Student ID':    studentId,
+          'Reason':        reason,
+          'Check-In Time': checkInTime
+        })
+      });
+    } catch(e) {
+      console.error('Formspree error:', e);
+    }
+
+    document.getElementById('successName').textContent   = first + ' ' + last;
+    document.getElementById('successReason').textContent = reason + '  ·  ' + new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('formView').style.display    = 'none';
+    document.getElementById('successView').style.display = 'flex';
+    let secs = 10;
+    const el = document.getElementById('countdownMsg');
+    el.textContent = 'Returning to home screen in ' + secs + 's…';
+    const timer = setInterval(() => {
+      secs--;
+      el.textContent = 'Returning to home screen in ' + secs + 's…';
+      if (secs <= 0) { clearInterval(timer); resetForm(); }
+    }, 1000);
+  }
+
+  function resetForm() {
+    ['firstName','lastName','studentId'].forEach(id => { document.getElementById(id).value=''; document.getElementById(id).classList.remove('error'); });
+    document.getElementById('reason').value='';
+    document.getElementById('reason').classList.remove('error');
+    ['firstNameErr','lastNameErr','studentIdErr','reasonErr'].forEach(id => document.getElementById(id).style.display='none');
+    document.getElementById('successView').style.display='none';
+    document.getElementById('formView').style.display='flex';
+  }
+</script>
+</body>
+</html>
