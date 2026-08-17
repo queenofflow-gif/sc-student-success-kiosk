@@ -199,11 +199,19 @@
       console.error('SUBMIT_URL has not been set — paste your Apps Script /exec URL in at the top of this file.');
     } else {
       try {
-        const res = await fetch(SUBMIT_URL, {
+        // mode: 'no-cors' is required here. Apps Script /exec URLs respond
+        // via an internal redirect to a googleusercontent.com URL, and that
+        // hop doesn't carry CORS headers back to a different origin (like
+        // this GitHub Pages site) — a normal fetch() gets blocked with a
+        // "No Access-Control-Allow-Origin" / 404-looking error even though
+        // the script runs fine server-side. no-cors sends the request and
+        // lets the script execute, but the response becomes unreadable
+        // ("opaque") — that's expected and fine, since we don't need to
+        // read anything back. Check the Apps Script "Executions" log if you
+        // ever need to confirm a specific submission succeeded server-side.
+        await fetch(SUBMIT_URL, {
           method: 'POST',
-          // Using text/plain avoids a CORS "preflight" request, which Google
-          // Apps Script web apps don't support. The body is still JSON —
-          // the script parses it with JSON.parse(e.postData.contents).
+          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             'First Name':    first,
@@ -213,27 +221,7 @@
             'Check-In Time': checkInTime
           })
         });
-        // Read as text first — if the deployment is misconfigured, Apps
-        // Script/Google can return an HTML login page instead of JSON,
-        // and calling res.json() directly would throw on that.
-        const raw = await res.text();
-        let data;
-        try {
-          data = JSON.parse(raw);
-        } catch (parseErr) {
-          console.error(
-            'Apps Script did not return JSON (this usually means the deployment\'s ' +
-            '"Who has access" setting is not "Anyone" — check Deploy > Manage deployments). ' +
-            'Raw response:', raw.slice(0, 300)
-          );
-          data = null;
-        }
-        if (data) {
-          console.log('Apps Script response:', res.status, JSON.stringify(data));
-          if (!res.ok || data.result !== 'success') {
-            console.error('Apps Script error:', JSON.stringify(data));
-          }
-        }
+        console.log('Check-in submitted to Apps Script (response is opaque under no-cors, so no status is available here).');
       } catch(e) {
         console.error('Apps Script fetch failed (check SUBMIT_URL is correct and reachable):', e.message);
       }
