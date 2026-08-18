@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Prevent the kiosk browser from caching a stale copy of this page —
+     every load (including the auto-reload after each check-in) should
+     always fetch the current version from GitHub Pages. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Southwestern College — Student Success Center</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -236,16 +242,17 @@
     const timer = setInterval(() => {
       secs--;
       el.textContent = 'Returning to home screen in ' + secs + 's…';
-      if (secs <= 0) { clearInterval(timer); resetForm(); }
+      if (secs <= 0) {
+        clearInterval(timer);
+        // Full reload (not just an in-place form reset) so every new
+        // student starts from a completely fresh page load — this also
+        // guarantees the kiosk always picks up the latest deployed version
+        // of this file instead of running on a stale in-memory copy.
+        // The '?t=' query param busts any lingering cache on top of the
+        // no-cache meta tags in <head>.
+        window.location.href = window.location.pathname + '?t=' + Date.now();
+      }
     }, 1000);
-  }
-  function resetForm() {
-    ['firstName','lastName','studentId'].forEach(id => { document.getElementById(id).value=''; document.getElementById(id).classList.remove('error'); });
-    document.getElementById('reason').value='';
-    document.getElementById('reason').classList.remove('error');
-    ['firstNameErr','lastNameErr','studentIdErr','reasonErr'].forEach(id => document.getElementById(id).style.display='none');
-    document.getElementById('successView').style.display='none';
-    document.getElementById('formView').style.display='flex';
   }
 </script>
 </body>
